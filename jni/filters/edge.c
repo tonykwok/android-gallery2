@@ -19,7 +19,7 @@
 
 void JNIFUNCF(ImageFilterEdge, nativeApplyFilter, jobject bitmap, jint width, jint height, jfloat p)
 {
-    uint8_t* destination = 0;
+    char* destination = 0;
     AndroidBitmap_lockPixels(env, bitmap, (void**) &destination);
 
     // using contrast function:
@@ -32,15 +32,15 @@ void JNIFUNCF(ImageFilterEdge, nativeApplyFilter, jobject bitmap, jint width, ji
     float const c_max = 500.0f;
 
     // pixels must be 4 bytes
-    uint8_t* dst = destination;
+    char * dst = destination;
 
     int j, k;
-    uint8_t* ptr = destination;
+    char * ptr = destination;
     int row_stride = 4 * width;
 
     // set 2 row buffer (avoids bitmap copy)
     int buf_len = 2 * row_stride;
-    uint8_t buf[buf_len];
+    char buf[buf_len];
     int buf_row_ring = 0;
 
     // set initial buffer to black
