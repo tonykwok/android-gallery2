@@ -154,7 +154,7 @@ public class SlotView extends GLView {
     protected void onLayout(boolean changeSize, int l, int t, int r, int b) {
         if (!changeSize) return;
 
-        // Make sure we are still at a resonable scroll position after the size
+        // Make sure we are still at a reasonable scroll position after the size
         // is changed (like orientation change). We choose to keep the center
         // visible slot still visible. This is arbitrary but reasonable.
         int visibleIndex =
@@ -467,7 +467,7 @@ public class SlotView extends GLView {
         // direction is the "minor" direction.
         //
         // The comments inside this method are the description when the major
-        // directon is horizontal (X), and the minor directon is vertical (Y).
+        // direction is horizontal (X), and the minor direction is vertical (Y).
         private void initLayoutParameters(
                 int majorLength, int minorLength,  /* The view width and height */
                 int majorUnitSize, int minorUnitSize,  /* The slot width and height */
@@ -486,7 +486,7 @@ public class SlotView extends GLView {
             int count = ((mSlotCount + mUnitCount - 1) / mUnitCount);
             mContentLength = count * majorUnitSize + (count - 1) * mSlotGap;
 
-            // If the content length is less then the screen width, put
+            // If the content length is less than the screen width, put
             // extra padding in left and right.
             padding[1] = Math.max(0, (majorLength - mContentLength) / 2);
         }
