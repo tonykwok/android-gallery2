@@ -178,6 +178,12 @@ public class SlotView extends GLView {
         if (mLayout.mSlotCount != 0) invalidate();
     }
 
+    public void startRestoringAnimation(int targetIndex) {
+        mAnimation = new RestoringAnimation(targetIndex);
+        mAnimation.start();
+        if (mLayout.mSlotCount != 0) invalidate();
+    }
+
     private void updateScrollPosition(int position, boolean force) {
         if (!force && (WIDE ? position == mScrollX : position == mScrollY)) return;
         if (WIDE) {
@@ -368,6 +374,22 @@ public class SlotView extends GLView {
                     (mCenter.getY() - target.centerY()) * (1 - mProgress),
                     slotIndex * PHOTO_DISTANCE * (1 - mProgress));
             canvas.setAlpha(mProgress);
+        }
+    }
+
+    public static class RestoringAnimation extends SlotAnimation {
+        private static final int DISTANCE = 1000;
+        private int mTargetIndex;
+
+        public RestoringAnimation(int targetIndex) {
+            mTargetIndex = targetIndex;
+        }
+
+        @Override
+        public void apply(GLCanvas canvas, int slotIndex, Rect target) {
+            if (slotIndex == mTargetIndex) {
+                canvas.translate(0, 0, -DISTANCE * (1 - mProgress));
+            }
         }
     }
 

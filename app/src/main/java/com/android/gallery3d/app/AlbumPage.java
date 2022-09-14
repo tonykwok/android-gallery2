@@ -380,6 +380,15 @@ public class AlbumPage extends ActivityState implements GalleryActionBar.Cluster
                 mActivity.getStateManager().hasStateClass(FilmstripPage.class);
         mInCameraApp = data.getBoolean(PhotoPage.KEY_APP_BRIDGE, false);
 
+        // Don't show animation if it is restored or switched from filmstrip
+        if (!mLaunchedFromPhotoPage && restoreState == null && data != null) {
+            int[] center = data.getIntArray(KEY_SET_CENTER);
+            if (center != null) {
+                mOpenCenter.setAbsolutePosition(center[0], center[1]);
+                mSlotView.startScatteringAnimation(mOpenCenter);
+            }
+        }
+
         mHandler = new SynchronizedHandler(mActivity.getGLRoot()) {
             @Override
             public void handleMessage(Message message) {
@@ -643,6 +652,7 @@ public class AlbumPage extends ActivityState implements GalleryActionBar.Cluster
                 if (data == null) return;
                 mFocusIndex = data.getIntExtra(PhotoPage.KEY_RETURN_INDEX_HINT, 0);
                 mSlotView.makeSlotVisible(mFocusIndex);
+//                mSlotView.startRestoringAnimation(mFocusIndex);
                 break;
             }
             case REQUEST_DO_ANIMATION: {

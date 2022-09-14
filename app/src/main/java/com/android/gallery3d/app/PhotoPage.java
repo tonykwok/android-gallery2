@@ -43,6 +43,7 @@ import com.android.camera.CameraActivity;
 import com.android.camera.ProxyLauncher;
 import com.android.gallery3d.R;
 import com.android.gallery3d.common.ApiHelper;
+import com.android.gallery3d.common.Utils;
 import com.android.gallery3d.data.ComboAlbum;
 import com.android.gallery3d.data.DataManager;
 import com.android.gallery3d.data.FilterDeleteSet;
@@ -61,12 +62,15 @@ import com.android.gallery3d.data.SnailItem;
 import com.android.gallery3d.data.SnailSource;
 import com.android.gallery3d.filtershow.FilterShowActivity;
 import com.android.gallery3d.filtershow.crop.CropActivity;
+import com.android.gallery3d.glrenderer.GLCanvas;
 import com.android.gallery3d.picasasource.PicasaSource;
 import com.android.gallery3d.ui.DetailsHelper;
 import com.android.gallery3d.ui.DetailsHelper.CloseListener;
 import com.android.gallery3d.ui.DetailsHelper.DetailsSource;
+import com.android.gallery3d.ui.GLRoot;
 import com.android.gallery3d.ui.GLView;
 import com.android.gallery3d.ui.MenuExecutor;
+import com.android.gallery3d.ui.PhotoFallbackEffect;
 import com.android.gallery3d.ui.PhotoView;
 import com.android.gallery3d.ui.SelectionManager;
 import com.android.gallery3d.ui.SynchronizedHandler;
@@ -1329,6 +1333,43 @@ public abstract class PhotoPage extends ActivityState implements
         }
     }
 
+    private class PreparePhotoFallback implements GLRoot.OnGLIdleListener {
+        private PhotoFallbackEffect mPhotoFallback = new PhotoFallbackEffect();
+        private boolean mResultReady = false;
+
+        public synchronized PhotoFallbackEffect get() {
+            while (!mResultReady) {
+                Utils.waitWithoutInterrupt(this);
+            }
+            return mPhotoFallback;
+        }
+
+        @Override
+        public boolean onGLIdle(GLCanvas canvas, boolean renderRequested) {
+            mPhotoFallback = mPhotoView.buildFallbackEffect(mRootPane, canvas);
+            synchronized (this) {
+                mResultReady = true;
+                notifyAll();
+            }
+            return false;
+        }
+    }
+
+    private void preparePhotoFallbackView() {
+        GLRoot root = mActivity.getGLRoot();
+        PreparePhotoFallback task = new PreparePhotoFallback();
+        root.unlockRenderThread();
+        PhotoFallbackEffect anim;
+        try {
+            root.addOnGLIdleListener(task);
+            anim = task.get();
+        } finally {
+            root.lockRenderThread();
+        }
+        mActivity.getTransitionStore().put(
+                AlbumPage.KEY_RESUME_ANIMATION, anim);
+    }
+
     @Override
     public void onPause() {
         super.onPause();
@@ -1336,6 +1377,8 @@ public abstract class PhotoPage extends ActivityState implements
 
         mActivity.getGLRoot().unfreeze();
         mHandler.removeMessages(MSG_UNFREEZE_GLROOT);
+
+        // if (isFinishing()) preparePhotoFallbackView();
 
         DetailsHelper.pause();
         // Hide the detail dialog on exit
